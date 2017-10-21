@@ -1,0 +1,19 @@
+def generate_hash_values(name):
+    return generate_password_hash(name, method='sha256')
+
+
+class GenerateQrCode(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    transact_key = db.Column(db.String(120), nullable=False)
+    date_time = db.Column(db.DateTime)
+    amount = db.Column(db.Integer(100), nullable=False)
+
+    def __init__(self, name, transact_key, date_time, amount):
+        self.name = generate_hash_values(name)
+        self.transact_key = generate_hash_values(transact_key)
+        self.date_time = generate_hash_values(date_time)
+        self.amount = generate_hash_values(amount)
+
+    def __repr__(self):
+        return '{}'.format(self.name)
