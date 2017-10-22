@@ -1,4 +1,4 @@
-parse_amount = reqparse.RequestParser()
+parse_amount = api.parse()
 parse_amount.add_argument('amount', type=str, required=True, help='amount must be inputted')
 
 
