@@ -1,27 +1,43 @@
-class GenerateQrcode(Resource):
+parse_amount = reqparse.RequestParser()
+parse_amount.add_argument('amount', type=str, required=True, help='amount must be inputted')
 
+
+
+class Qrcode(Resource):
+
+    @api.doc(responses={
+        'success': 201,
+        'validation failed': 401
+    })
     def post(self):
-        user = params.parse_args()
 
-        get_name = user.get(session['user'])
-        get_transact_id = user.get('transact_id')
-        get_amount = user.get('amount')
-        get_datetime= user.get(datetime.datetime.utcnow())
-
-        user_details = GenerateQrcode(name=get_name, transact_key=get_transact_id, date_time=get_datetime,
-                                          amount=get_amount)
-
-        db.session.add(user_details)
-        db.session.commit()
-
-
-        encode_values = user_details.transact_key.encode('utf-8')
-
-        convert_id = base64.b64encode(encode_values)
-
-
-        session['user'] =  convert_id
+        request_details = parse_amount.parse_args()
 
         if 'user' in session:
+            try:
+                from app.models import GenerateQrCode
+                import random
 
-            url = pyqrcode.create(convert_id, error='H', version=20, mode='binary')
+                qrcode = GenerateQrCode
+
+                qrcode.name = session['user']
+
+                qrcode.transact_id = str(random.random())[2:10]
+
+                qrcode.transact_key = str(random.random())[3:10]
+
+                qrcode.amount = GenerateQrCode(tokens=request_details.get('amount'))
+
+                save_data = str(qrcode.name) + str(qrcode.transact_id) + str(qrcode.transact_key) + str(qrcode.amount)
+
+                save_data.encode('utf-8')
+
+                token = qrcode.generate_hash_token(save_data)
+
+                db.session.add(token)
+                db.session.commit()
+
+                return json_response(res=token, text='success', status_=200)
+
+            except Exception as e:
+                return json_response(res='Falied', status_=401)
