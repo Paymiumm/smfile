@@ -4,16 +4,16 @@ def generate_hash_values(name):
 
 class GenerateQrCode(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), nullable=False)
-    transact_key = db.Column(db.String(120), nullable=False)
-    date_time = db.Column(db.DateTime)
-    amount = db.Column(db.Integer(100), nullable=False)
+    tokens = db.Column(db.String(500), nullable=False)
 
-    def __init__(self, name, transact_key, date_time, amount):
-        self.name = generate_hash_values(name)
-        self.transact_key = generate_hash_values(transact_key)
-        self.date_time = generate_hash_values(date_time)
-        self.amount = generate_hash_values(amount)
+    def __init__(self, name, amount, transact_id, transact_key):
+        self.name = name
+        self.amount = amount
+        self.transact_id = transact_id
+        self.transact_key = transact_key
 
-    def __repr__(self):
-        return '{}'.format(self.name)
+    def generate_hash_token(self, value):
+        return generate_hash_values(value)
+
+    def verify_hashed_values(self, text):
+        return check_password_hash(self.tokens, text)
