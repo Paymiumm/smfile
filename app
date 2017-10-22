@@ -13,7 +13,7 @@ class Qrcode(Resource):
 
         request_details = parse_amount.parse_args()
 
-        if 'user' in session:
+         if 'user' in session:
             try:
                 from app.models import GenerateQrCode
                 import random
@@ -37,7 +37,9 @@ class Qrcode(Resource):
                 db.session.add(token)
                 db.session.commit()
 
-                return json_response(res=token, text='success', status_=200)
+                hashed_values = base64.b64encode(token)
+
+                return json_response(res=hashed_values, text='success', status_=200)
 
             except Exception as e:
                 return json_response(res='Falied', status_=401)
