@@ -1,0 +1,33 @@
+from flask import Flask
+
+from flask.ext.kvsession import KVSessionExtension
+from simplekv.db.sql import SQLAlchemyStore
+from sqlalchemy import create_engine, MetaData
+
+# init app
+app = Flask(__name__)
+
+# init Flask-KVSession
+engine = create_engine('mysql+pymysql://user:password@localhost/kvsession_db')
+metadata = MetaData(bind=engine)
+store = SQLAlchemyStore(engine, metadata, 'kvsession_table')
+metadata.create_all()
+kvsession_extension = KVSessionExtension(store, app)
+
+# perdiocally cleanup expired sessions
+import time
+# do cleanup per day. You may store this value in app.config
+SESSION_CLEANUP_INTERVAL = 60 * 60 * 24
+deadline = None
+@app.after_request
+def cleanup_expired_sessions():
+    global SESSION_CLEANUP_INTERVAL, deadline
+    if deadline is None:
+        kvsession_extension.cleanup_sessions(app)
+        deadline = time.time() = SESSION_CLEANUP_INTERVAL
+    else:
+        if time.time() >= deadline:
+            # time to do cleanup
+            kvsession_extension.cleanup(app)
+            # update deadline
+            deadline = time.time() + SESSION_CLEANUP_INTERVAL
